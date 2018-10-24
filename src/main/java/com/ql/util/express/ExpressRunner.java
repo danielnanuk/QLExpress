@@ -87,13 +87,33 @@ public class ExpressRunner {
 
 	private AppendingClassFieldManager appendingClassFieldManager;
 
-	private ThreadLocal<IOperateDataCache> m_OperateDataObjectCache = new ThreadLocal<IOperateDataCache>(){
-		protected IOperateDataCache initialValue() {
-	        return new OperateDataCacheImpl(30);
-	    }
+	private static final ThreadLocal<Stack<IOperateDataCache>> TL_CACHE_STACK = new ThreadLocal<Stack<IOperateDataCache>>
+			() {
+		@Override
+		protected Stack<IOperateDataCache> initialValue() {
+			return new Stack<IOperateDataCache>();
+		}
 	};
+
+	public IOperateDataCache initOperateDataCache() {
+		IOperateDataCache cache = new OperateDataCacheImpl(30);
+		getCacheStack().push(cache);
+		return cache;
+	}
+
 	public IOperateDataCache getOperateDataCache(){
-		return this.m_OperateDataObjectCache.get();
+		return getCacheStack().peek();
+	}
+
+	public void popOperateDataCache() {
+		Stack<IOperateDataCache> cacheStack = getCacheStack();
+		if (!cacheStack.isEmpty()) {
+			cacheStack.pop();
+		}
+	}
+
+	private Stack<IOperateDataCache> getCacheStack() {
+		return TL_CACHE_STACK.get();
 	}
 
 	public ExpressRunner(){

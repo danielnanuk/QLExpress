@@ -79,22 +79,26 @@ class RunnerDataCache{
 	Stack<ExpressRunner> stack = new Stack<ExpressRunner>();
 	
 	public void push(ExpressRunner aRunner){
-		this.cache = aRunner.getOperateDataCache();
+		this.cache = aRunner.initOperateDataCache();
 		this.stack.push(aRunner);
 	}
+
 	public IOperateDataCache getOperateDataCache(){
 		return this.cache;
 	}
+
 	public void pop(ExpressRunner aRunner){
-	    
-//	    原有的逻辑
-//		this.cache = this.stack.pop().getOperateDataCache();
-	    
-        //bugfix处理ExpressRunner嵌套情况下，cache还原的问题
-        this.stack.pop();
-        if(!this.stack.isEmpty()){
+
+		// bugfix: 单个ExpressRunner中 嵌套执行语句时导致清理外层缓存导致NPE的情况
+		aRunner.popOperateDataCache();
+
+		// 原有的逻辑
+		// this.cache = this.stack.pop().getOperateDataCache();
+		// bugfix: 处理ExpressRunner嵌套情况下，cache还原的问题
+		this.stack.pop();
+        if (!this.stack.isEmpty()) {
             this.cache = this.stack.peek().getOperateDataCache();
-        }else{
+        } else {
             this.cache = null;
         }
 	}
